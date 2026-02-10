@@ -19,7 +19,8 @@
                 <label for="theme_color">Warna Tema</label>
                 <div
                     style="display: flex; align-items: center; gap: 10px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 4px 10px;">
-                    <input type="color" id="theme_color" name="theme_color" value="#6366f1"
+                    <input type="color" id="theme_color" name="theme_color"
+                        value="{{ config.theme_color if config and config.theme_color else '#6366f1' }}"
                         style="border: none; background: none; width: 40px; height: 34px; cursor: pointer;">
                     <span style="font-size: 0.85rem; color: var(--text-muted);">Pilih Warna</span>
                 </div>
@@ -136,6 +137,16 @@
             fileNameSpan.style.color = 'var(--primary)';
         }
     }
+
+    // Real-time Theme Color Preview
+    const colorPicker = document.getElementById('theme_color');
+    colorPicker.addEventListener('input', (e) => {
+        const color = e.target.value;
+        document.documentElement.style.setProperty('--primary', color);
+
+        // Also update any dynamic styles that were injected in layout.html
+        // We can just set the CSS variables and most things will follow.
+    });
 
     function addModelRow() {
         const list = document.getElementById('models-list');

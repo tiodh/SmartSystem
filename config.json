@@ -1,0 +1,25 @@
+{
+    "site_name": "Coba",
+    "description": "coba",
+    "classes": [
+        "Person",
+        "Vest",
+        "Helmet Blue",
+        "Helmet White",
+        "Helmet Yellow"
+    ],
+    "nim": "123",
+    "student_name": "asd",
+    "prodi": "asd",
+    "supervisor": "asd",
+    "theme_color": "#6366f1",
+    "theme_mode": "dark",
+    "input_type": "image",
+    "is_setup": true,
+    "models": [
+        {
+            "display_name": "YOLOv11s",
+            "filename": "yolo11s.pt"
+        }
+    ]
+}

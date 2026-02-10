@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MODEL_FOLDER'] = 'models'
 app.config['CONFIG_FILE'] = 'config.json'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+# app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Remove limit for larger models
 
 # Ensure folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -98,7 +98,7 @@ def setup():
             # Handle case where no models were uploaded
             return render_template('setup.html', error="At least one model is required.")
             
-    return render_template('setup.html')
+    return render_template('setup.html', config=get_config())
 
 @app.route('/reset', methods=['POST'])
 def reset():
@@ -127,6 +127,7 @@ def process():
     config = get_config()
     input_type = config.get('input_type', 'image')
     model_filename = request.form.get('model')
+    theme_color = config.get('theme_color', '#6366f1')
     
     # Common variables
     prediction = ""
@@ -149,39 +150,71 @@ def process():
         try:
             img = Image.open(filepath)
             width, height = img.size
-            image_url = f'/uploads/{filename}'
+            
+            # Simulated processing logic using config classes
+            available_classes = config.get('classes', ["Object"])
+            prediction = np.random.choice(available_classes)
+            confidence = round(np.random.uniform(0.7, 0.99), 2)
+            
+            # DRAW ANNOTATION
+            from PIL import ImageDraw, ImageFont
+            draw = ImageDraw.Draw(img)
+            
+            # Simple random box
+            margin = 0.2
+            x1 = int(width * np.random.uniform(0.1, 0.3))
+            y1 = int(height * np.random.uniform(0.1, 0.3))
+            x2 = int(width * np.random.uniform(0.7, 0.9))
+            y2 = int(height * np.random.uniform(0.7, 0.9))
+            
+            # Draw box with theme color
+            draw.rectangle([x1, y1, x2, y2], outline=theme_color, width=5)
+            
+            # Draw label background
+            label_text = f"{prediction} {int(confidence*100)}%"
+            try:
+                # Try to use a better font if available, else default
+                font = ImageFont.load_default()
+            except:
+                font = ImageFont.load_default()
+                
+            # Draw label
+            draw.rectangle([x1, y1 - 25, x1 + 150, y1], fill=theme_color)
+            draw.text((x1 + 5, y1 - 22), label_text, fill="white", font=font)
+            
+            # Save annotated image
+            result_filename = f"res_{filename}"
+            result_path = os.path.join(app.config['UPLOAD_FOLDER'], result_filename)
+            img.save(result_path)
+            
+            image_url = f'/uploads/{result_filename}'
         except Exception as e:
-            return jsonify({'error': f'Invalid image: {str(e)}'}), 500
+            return jsonify({'error': f'Processing error: {str(e)}'}), 500
     else:
         # Text input
         text_input = request.form.get('text_input', '').strip()
         if not text_input:
             return jsonify({'error': 'No text provided'}), 400
-        # For text, we don't have an image_url or size
-    
-    # Dummy processing logic using config classes
-    try:
+        
         available_classes = config.get('classes', ["Object"])
         prediction = np.random.choice(available_classes)
         confidence = round(np.random.uniform(0.7, 0.99), 2)
-        
-        response_data = {
-            'prediction': prediction,
-            'confidence': confidence,
-            'metadata': {
-                'model_used': model_filename,
-                'input_type': input_type
-            }
+    
+    response_data = {
+        'prediction': prediction,
+        'confidence': confidence,
+        'metadata': {
+            'model_used': model_filename,
+            'input_type': input_type
         }
+    }
+    
+    if input_type == 'image':
+        response_data['image_url'] = image_url
+        response_data['metadata']['width'] = width
+        response_data['metadata']['height'] = height
         
-        if input_type == 'image':
-            response_data['image_url'] = image_url
-            response_data['metadata']['width'] = width
-            response_data['metadata']['height'] = height
-            
-        return jsonify(response_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify(response_data)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
