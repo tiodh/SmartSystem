@@ -1,0 +1,201 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ config.site_name }}{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <header>
+        <h1>{{ config.site_name }}</h1>
+        <p class="description">{{ config.description }}</p>
+
+        <div
+            style="margin: 1.5rem 0; padding: 1.25rem; background: rgba(255, 255, 255, 0.05); border-radius: 1rem; border: 1px solid var(--border); text-align: left; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <div
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Mahasiswa</div>
+                <div style="font-weight: 600;">{{ config.student_name }}</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">{{ config.nim }}</div>
+            </div>
+            <div>
+                <div
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Program Studi</div>
+                <div style="font-weight: 600;">{{ config.prodi }}</div>
+            </div>
+            <div>
+                <div
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                    Dosen Pembimbing</div>
+                <div style="font-weight: 600;">{{ config.supervisor }}</div>
+            </div>
+        </div>
+    </header>
+
+    <form id="inference-form">
+        <div class="inference-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="model">Select AI Model</label>
+                <div style="position: relative;">
+                    <span
+                        style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; pointer-events: none; z-index: 1;">🤖</span>
+                    <select id="model" name="model" style="padding-left: 3rem;">
+                        {% for model in models %}
+                        <option value="{{ model.filename }}">{{ model.display_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="supported-classes"
+                    style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-muted); background: rgba(255, 255, 255, 0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color);">
+                    <div
+                        style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; color: var(--primary);">
+                        Kategori Terdeteksi</div>
+                    <span id="classes-list" style="color: var(--text-main); font-weight: 500;">{{ config.classes|join(',
+                        ') }}</span>
+                </div>
+            </div>
+
+            {% if config.input_type == 'text' %}
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="text_input">Input Text for Inference</label>
+                <textarea id="text_input" name="text_input" rows="5" placeholder="Enter text to analyze..."
+                    required></textarea>
+            </div>
+            {% else %}
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Upload Image for Inference</label>
+                <div class="file-input-wrapper">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text" id="img-label">Drop image here or click to upload</div>
+                    <div class="upload-hint">Supports JPG, PNG, WEBP (Max 16MB)</div>
+                    <div class="upload-preview" id="upload-preview" style="position: relative;">
+                        <div class="scan-line" id="scan-line"></div>
+                        <img src="" alt="Preview" class="preview-img-upload" id="preview-img-upload">
+                    </div>
+                    <input type="file" id="image" name="image" accept="image/*" required
+                        onchange="handleImageUpload(this, 'img-label')">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">
+            <div class="loader" id="loader"></div>
+            <span id="btn-text">Process {{ 'Text' if config.input_type == 'text' else 'Image' }}</span>
+        </button>
+    </form>
+
+    <div id="result-area" class="result-container">
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+        <h3 style="margin-bottom: 1rem;">Process Result</h3>
+        <img id="preview-img" src="" alt="Result" class="result-image">
+        <div class="result-info-container">
+            <div class="prediction-badge">
+                <span id="prediction-text"></span>
+                <span id="confidence-text" style="font-size: 0.85rem; opacity: 0.8;"></span>
+            </div>
+        </div>
+    </div>
+
+    <div
+        style="margin-top: 3rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.03); border-radius: 1rem; border: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted);">
+        <div style="display: flex; align-items: start; gap: 12px;">
+            <div style="font-size: 1.5rem;">🛡️</div>
+            <div>
+                <strong style="color: var(--primary); display: block; margin-bottom: 4px;">Human-Centered AI (HCAI)
+                    Principles</strong>
+                <p style="line-height: 1.4;">
+                    Sistem ini beroperasi di bawah pengawasan Anda. AI membantu proses identifikasi, namun
+                    keputusan akhir dan interpretasi hasil tetap berada di tangan pengguna untuk memastikan
+                    keandalan dan akuntabilitas hasil penelitian.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="reset-container">
+        <form action="/reset" method="POST"
+            onsubmit="return confirm('Apakah Anda yakin ingin meriset sistem? Semua konfigurasi dan model yang diupload akan dihapus.')">
+            <button type="submit" class="btn-text-only">Reset System & Clear Config</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleImageUpload(input, labelId) {
+        const label = document.getElementById(labelId);
+        const previewContainer = document.getElementById('upload-preview');
+        const previewImg = document.getElementById('preview-img-upload');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+                label.textContent = input.files[0].name;
+                label.style.color = 'var(--primary)';
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    const form = document.getElementById('inference-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const loader = document.getElementById('loader');
+    const btnText = document.getElementById('btn-text');
+    const resultArea = document.getElementById('result-area');
+    const scanLine = document.getElementById('scan-line');
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        // UI Feedback
+        submitBtn.disabled = true;
+        loader.style.display = 'block';
+        if (scanLine) scanLine.style.display = 'block';
+        btnText.textContent = 'Processing...';
+        resultArea.style.display = 'none';
+
+        // Simulate a short delay for UX
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        try {
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                if (data.image_url) {
+                    document.getElementById('preview-img').src = data.image_url;
+                    document.getElementById('preview-img').style.display = 'block';
+                } else {
+                    document.getElementById('preview-img').style.display = 'none';
+                }
+
+                document.getElementById('prediction-text').textContent = data.prediction;
+                document.getElementById('confidence-text').textContent = 'Confidence: ' + (data.confidence * 100).toFixed(0) + '%';
+                resultArea.style.display = 'block';
+                resultArea.scrollIntoView({ behavior: 'smooth' });
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong!');
+        } finally {
+            submitBtn.disabled = false;
+            loader.style.display = 'none';
+            if (scanLine) scanLine.style.display = 'none';
+            btnText.textContent = 'Process ' + (document.getElementById('text_input') ? 'Text' : 'Image');
+        }
+    };
+</script>
+{% endblock %}

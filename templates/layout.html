@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | Computer Vision System</title>
+
+    <!-- Theme Detection Script (Prevents Flicker) -->
+    <script>
+        (function () {
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            const theme = getCookie('theme_mode') || "{{ config.theme_mode if config else 'dark' }}";
+            document.documentElement.className = theme + '-theme';
+        })();
+    </script>
+
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% if config and config.theme_color %}
+    <style>
+        :root {
+            --primary: {
+                    {
+                    config.theme_color
+                }
+            }
+
+            ;
+
+            --primary-hover: {
+                    {
+                    config.theme_color
+                }
+            }
+
+            ;
+        }
+
+        .btn {
+            background-color: var(--primary);
+
+            box-shadow: 0 4px 14px 0 {
+                    {
+                    config.theme_color
+                }
+            }
+
+            66;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.23);
+        }
+
+        .theme-toggle-btn:hover,
+        .prediction-badge {
+            border-color: var(--primary);
+        }
+
+        .prediction-badge {
+            background: {
+                    {
+                    config.theme_color
+                }
+            }
+
+            22;
+
+            border: 1px solid {
+                    {
+                    config.theme_color
+                }
+            }
+
+            44;
+            color: var(--primary);
+        }
+    </style>
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="{{ config.theme_mode if config and config.theme_mode else 'dark' }}-theme">
+    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode">
+        🌙
+    </button>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const html = document.documentElement;
+
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Initialize Theme from Cookie or Config
+        const savedTheme = getCookie('theme_mode');
+        if (savedTheme) {
+            body.className = savedTheme + '-theme';
+            html.className = savedTheme + '-theme';
+            themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+        } else {
+            const defaultTheme = "{{ config.theme_mode if config else 'dark' }}";
+            themeToggle.textContent = defaultTheme === 'dark' ? '🌙' : '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = body.classList.contains('dark-theme');
+            const newTheme = isDark ? 'light' : 'dark';
+
+            body.className = newTheme + '-theme';
+            html.className = newTheme + '-theme';
+            themeToggle.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+
+            setCookie('theme_mode', newTheme, 30);
+
+            // Sync with setup dropdown if it exists
+            const setupSelect = document.getElementById('theme_mode');
+            if (setupSelect) {
+                setupSelect.value = newTheme;
+            }
+        });
+
+        function previewTheme() {
+            const mode = document.getElementById('theme_mode').value;
+            body.className = mode + '-theme';
+            html.className = mode + '-theme';
+            themeToggle.textContent = mode === 'dark' ? '🌙' : '☀️';
+            setCookie('theme_mode', mode, 30);
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+
+{% block title %}Setup Wizard{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <header>
+        <h1>Welcome</h1>
+        <p class="description">Let's set up your computer vision system</p>
+    </header>
+
+    <form action="/setup" method="POST" enctype="multipart/form-data">
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="site_name">Website Name</label>
+                <input type="text" id="site_name" name="site_name" placeholder="e.g., VisionLab Pro" required>
+            </div>
+            <div class="form-group">
+                <label for="theme_color">Warna Tema</label>
+                <div
+                    style="display: flex; align-items: center; gap: 10px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 4px 10px;">
+                    <input type="color" id="theme_color" name="theme_color" value="#6366f1"
+                        style="border: none; background: none; width: 40px; height: 34px; cursor: pointer;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Pilih Warna</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="theme_mode">Mode Tampilan</label>
+                <select id="theme_mode" name="theme_mode" onchange="previewTheme()">
+                    <option value="dark">Dark Mode</option>
+                    <option value="light">Light Mode</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label>Tipe Data Input</label>
+            <div
+                style="display: flex; gap: 2rem; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1rem 1.5rem;">
+                <label
+                    style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 0; color: var(--text-main);">
+                    <input type="radio" name="input_type" value="image" checked
+                        style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary);">
+                    <span>Image Data (📸)</span>
+                </label>
+                <label
+                    style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 0; color: var(--text-main);">
+                    <input type="radio" name="input_type" value="text"
+                        style="width: 1.2rem; height: 1.2rem; accent-color: var(--primary);">
+                    <span>Text Data (📝)</span>
+                </label>
+            </div>
+        </div>
+
+        <div
+            style="margin-bottom: 2rem; padding: 1.25rem; background: rgba(99, 102, 241, 0.05); border-radius: 1rem; border: 1px solid rgba(99, 102, 241, 0.2); font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 1.2rem;">🤝</span>
+                <strong style="color: var(--primary);">Human-Centered AI (HCAI)</strong>
+            </div>
+            <p style="color: var(--text-muted); line-height: 1.5;">
+                Sistem ini dirancang dengan prinsip <strong>HCAI</strong>, yang mengutamakan kendali manusia
+                terhadap AI. Anda memiliki otoritas penuh untuk menentukan model, kategori objek, dan memvalidasi
+                hasil deteksi untuk memastikan teknologi ini tetap aman dan bermanfaat bagi pengguna.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Website Keterangan</label>
+            <textarea id="description" name="description" rows="3" placeholder="Explain what this system does..."
+                required></textarea>
+        </div>
+
+        <div
+            style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.03); border-radius: 1rem; border: 1px solid var(--border);">
+            <h3 style="margin-bottom: 1.25rem; font-size: 1.1rem; color: var(--primary);">Profil Mahasiswa</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="student_name">Nama Lengkap</label>
+                    <input type="text" id="student_name" name="student_name" placeholder="Contoh: John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="nim">NIM</label>
+                    <input type="text" id="nim" name="nim" placeholder="Contoh: 12345678" required>
+                </div>
+                <div class="form-group">
+                    <label for="prodi">Program Studi</label>
+                    <input type="text" id="prodi" name="prodi" placeholder="Contoh: Informatika" required>
+                </div>
+                <div class="form-group">
+                    <label for="supervisor">Dosen Pembimbing</label>
+                    <input type="text" id="supervisor" name="supervisor" placeholder="Nama Dosen Pembimbing" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="classes">Classes (comma separated)</label>
+            <input type="text" id="classes" name="classes" placeholder="e.g., Cat, Dog, Bird" required>
+        </div>
+        <div class="form-group">
+            <label>Model Configuration</label>
+            <div id="models-list">
+                <div class="model-row">
+                    <div>
+                        <label style="font-size: 0.8rem;">Model Name</label>
+                        <input type="text" name="model_names[]" placeholder="e.g., YOLO v8" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem;">Model File</label>
+                        <div class="compact-file-input">
+                            <span class="file-name">Select model file</span>
+                            <input type="file" name="model_files[]" required onchange="updateCompactName(this)">
+                        </div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn-danger" style="visibility: hidden;">&times;</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addModelRow()">+ Add Another Model</button>
+        </div>
+
+        <button type="submit" class="btn">Finish Setup</button>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateCompactName(input) {
+        const fileNameSpan = input.parentElement.querySelector('.file-name');
+        if (input.files.length > 0) {
+            fileNameSpan.textContent = input.files[0].name;
+            fileNameSpan.style.color = 'var(--primary)';
+        }
+    }
+
+    function addModelRow() {
+        const list = document.getElementById('models-list');
+        const firstRow = list.querySelector('.model-row');
+        const newRow = firstRow.cloneNode(true);
+
+        // Reset inputs and display
+        newRow.querySelectorAll('input').forEach(input => {
+            input.value = '';
+        });
+        const fileNameSpan = newRow.querySelector('.file-name');
+        if (fileNameSpan) {
+            fileNameSpan.textContent = 'Select model file';
+            fileNameSpan.style.color = '';
+        }
+
+        // Make delete button visible for subsequent rows
+        const delBtn = newRow.querySelector('.btn-danger');
+        delBtn.style.visibility = 'visible';
+        delBtn.onclick = function () {
+            newRow.remove();
+        };
+
+        list.appendChild(newRow);
+    }
+</script>
+{% endblock %}
